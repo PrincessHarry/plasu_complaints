@@ -1,0 +1,230 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}PSU Complaints System{% endblock %} | Plateau State University</title>
+  <meta name="description" content="Plateau State University Complaints and Resolution Management System">
+  <meta name="theme-color" content="#006400">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+  <link rel="stylesheet" href="{% static 'css/main.css' %}">
+  {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+<!-- Navigation -->
+ 
+<nav class="navbar">
+  <div class="navbar-inner">
+    <a href="{% url 'home' %}" class="navbar-brand">
+      <div class="brand-logo">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+          <path d="M2 17l10 5 10-5"/>
+          <path d="M2 12l10 5 10-5"/>
+        </svg>
+      </div>
+      <div class="brand-text">
+        <span class="brand-name">PLASU Complaints</span>
+        <span class="brand-sub">Plateau State University</span>
+      </div>
+    </a>
+
+    <ul class="navbar-nav" id="mobileMenu">
+  <li><a href="{% url 'home' %}">
+    <i data-lucide="home" width="15"></i> Home
+  </a></li>
+
+  <!-- NEW SECTION LINKS -->
+  <li><a href="{% url 'home' %}#how-it-works">How it Works</a></li>
+  <li><a href="{% url 'home' %}#features">Features</a></li>
+  <li><a href="{% url 'home' %}#categories">Categories</a></li>
+
+  {% if user.is_authenticated %}
+  <li><a href="{% url 'dashboard' %}">Dashboard</a></li>
+  <li><a href="{% url 'complaint_list' %}">Complaints</a></li>
+  <li><a href="{% url 'file_complaint' %}">File Complaint</a></li>
+  {% endif %}
+
+  <!-- MOBILE AUTH (IMPORTANT) -->
+  {% if not user.is_authenticated %}
+  <li class="mobile-auth"><a href="{% url 'login' %}">Sign In</a></li>
+  <li class="mobile-auth"><a href="{% url 'register' %}">Register</a></li>
+  {% endif %}
+</ul>
+    <div class="navbar-actions">
+      {% if user.is_authenticated %}
+      <a href="{% url 'notifications' %}" class="nav-icon-btn">
+        <i data-lucide="bell" width="17"></i>
+        {% if unread_notifications %}
+        <span class="notif-badge">{{ unread_notifications }}</span>
+        {% endif %}
+      </a>
+
+      <div class="user-menu">
+        <div class="user-avatar">{{ user.get_initials }}</div>
+        <div class="user-dropdown">
+          <div class="user-dropdown-header">
+            <div>{{ user.get_full_name|default:user.username }}</div>
+            <div>{{ user.get_role_display }}</div>
+          </div>
+          <a href="{% url 'profile' %}" class="dropdown-item">My Profile</a>
+          <a href="{% url 'logout' %}" class="dropdown-item danger">Sign Out</a>
+        </div>
+      </div>
+      {% else %} 
+      <a href="{% url 'login' %}" class="btn btn-ghost btn-sm">Sign In</a> <a href="{% url 'register' %}" class="btn btn-primary btn-sm">Register</a> 
+    
+      {% endif %}
+<!-- Sidebar toggle -->
+ {% if user.is_authenticated %}
+  <button class="mobile-sidebar-btn" aria-label="Toggle sidebar">
+    <i data-lucide="panel-left" width="22"></i>
+  </button>
+  {% endif %}
+
+  <!-- Navbar menu toggle -->
+  <button class="mobile-menu-btn" aria-label="Toggle menu">
+    <i data-lucide="menu" width="22"></i>
+  </button>
+
+    </div>
+  </div>
+</nav>
+
+<!-- Messages -->
+{% if messages %}
+<div style="position:fixed;top:80px;right:1rem;z-index:500;display:flex;flex-direction:column;gap:0.5rem;max-width:360px;width:calc(100% - 2rem);">
+  {% for message in messages %}
+  <div class="alert alert-{{ message.tags|default:'info' }}" data-auto-dismiss style="margin:0;animation:slideUp 0.25s ease;">
+    <i data-lucide="{% if message.tags == 'success' %}check-circle{% elif message.tags == 'error' %}alert-circle{% elif message.tags == 'warning' %}alert-triangle{% else %}info{% endif %}" width="16" height="16" style="flex-shrink:0;"></i>
+    <span>{{ message }}</span>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+{% block full_content %}
+<!-- Page with sidebar -->
+<div class="page-layout">
+  {% block sidebar %}
+  {% if user.is_authenticated %}
+  <aside class="sidebar">
+    <div class="sidebar-section">
+      <div class="sidebar-label">Main</div>
+      <ul class="sidebar-nav">
+        <li><a href="{% url 'dashboard' %}">
+          <i data-lucide="layout-dashboard" width="16" height="16"></i> Dashboard
+        </a></li>
+        <li><a href="{% url 'complaint_list' %}">
+          <i data-lucide="list" width="16" height="16"></i> All Complaints
+        </a></li>
+        <li><a href="{% url 'file_complaint' %}">
+          <i data-lucide="plus-circle" width="16" height="16"></i> File a Complaint
+        </a></li>
+        <li><a href="{% url 'notifications' %}">
+          <i data-lucide="bell" width="16" height="16"></i> Notifications
+          {% with unread=request.user.notifications.filter %}
+          {% endwith %}
+        </a></li>
+      </ul>
+    </div>
+
+    {% if user.is_admin_user %}
+    <div class="sidebar-section">
+      <div class="sidebar-label">Administration</div>
+      <ul class="sidebar-nav">
+        <li><a href="{% url 'admin_overview' %}">
+          <i data-lucide="bar-chart-2" width="16" height="16"></i> Overview & Stats
+        </a></li>
+        <li><a href="/admin/">
+          <i data-lucide="settings" width="16" height="16"></i> Admin Panel
+        </a></li>
+      </ul>
+    </div>
+    {% endif %}
+
+    <div class="sidebar-section">
+      <div class="sidebar-label">Account</div>
+      <ul class="sidebar-nav">
+        <li><a href="{% url 'profile' %}">
+          <i data-lucide="user" width="16" height="16"></i> Profile
+        </a></li>
+        <li><a href="{% url 'logout' %}">
+          <i data-lucide="log-out" width="16" height="16"></i> Sign Out
+        </a></li>
+      </ul>
+    </div>
+  </aside>
+  {% endif %}
+  {% endblock %}
+
+  <main class="main-content">
+    {% block content %}{% endblock %}
+  </main>
+</div>
+{% endblock %}
+
+<!-- Footer -->
+{% block footer %}
+<footer class="footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:0.75rem;">
+          <div class="brand-logo" style="width:36px;height:36px;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+              <path d="M2 17l10 5 10-5"/>
+              <path d="M2 12l10 5 10-5"/>
+            </svg>
+          </div>
+          <span style="color:white;font-family:var(--font-display);font-weight:700;font-size:1rem;">PLASU Complaints System</span>
+        </div>
+        <p>A dedicated platform for students and staff of Plateau State University to file, track, and resolve complaints efficiently and transparently.</p>
+      </div>
+      <div>
+        <div class="footer-heading">Quick Links</div>
+        <ul class="footer-links">
+          <li><a href="{% url 'home' %}">Home</a></li>
+          <li><a href="{% url 'file_complaint' %}">File a Complaint</a></li>
+          <li><a href="{% url 'complaint_list' %}">Track Complaints</a></li>
+          <li><a href="{% url 'register' %}">Register</a></li>
+        </ul>
+      </div>
+      <div>
+        <div class="footer-heading">Categories</div>
+        <ul class="footer-links">
+          <li><a href="#">Facilities</a></li>
+          <li><a href="#">Academic Issues</a></li>
+          <li><a href="#">Student Services</a></li>
+          <li><a href="#">Staff Conduct</a></li>
+        </ul>
+      </div>
+      <div>
+        <div class="footer-heading">Contact</div>
+        <ul class="footer-links">
+          <li><a href="mailto:complaints@psu.edu.ng">complaints@psu.edu.ng</a></li>
+          <li><a href="tel:+2348000000000">+234 800 000 0000</a></li>
+          <li><a href="#">Plateau State University</a></li>
+          <li><a href="#">Jos, Plateau State, Nigeria</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>&copy; {% now "Y" %} <span class="footer-accent">Plateau State University</span>. All rights reserved.</span>
+      
+    </div>
+  </div>
+</footer>
+{% endblock %}
+
+<script src="{% static 'js/main.js' %}"></script>
+<script>lucide.createIcons();</script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

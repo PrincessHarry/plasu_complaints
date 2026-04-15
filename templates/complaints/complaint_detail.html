@@ -1,0 +1,427 @@
+{% extends "base/base.html" %}
+{% load static humanize %}
+
+{% block title %}{{ complaint.complaint_id }}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="page-header-inner">
+    <div>
+      <div class="breadcrumb">
+        <a href="{% url 'dashboard' %}"><i data-lucide="home" width="13" height="13"></i></a>
+        <span>/</span>
+        <a href="{% url 'complaint_list' %}">Complaints</a>
+        <span>/</span>
+        <span>{{ complaint.complaint_id }}</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;margin-top:0.5rem;">
+        <h1 class="page-title" style="margin-bottom:0;">{{ complaint.title }}</h1>
+        <span class="badge {{ complaint.status_color }}" style="font-size:0.78rem;">{{ complaint.get_status_display }}</span>
+        <span class="badge {{ complaint.priority_color }}" style="font-size:0.78rem;">{{ complaint.get_priority_display }}</span>
+      </div>
+    </div>
+    <div style="display:flex;gap:0.5rem;flex-wrap:wrap;">
+      {% if can_manage %}
+      <button class="btn btn-primary btn-sm" data-modal="resolve-modal">
+        <i data-lucide="edit-3" width="14" height="14"></i> Update Status
+      </button>
+      {% if request.user.is_admin_user %}
+      <button class="btn btn-outline btn-sm" data-modal="assign-modal">
+        <i data-lucide="user-check" width="14" height="14"></i> Assign
+      </button>
+      {% endif %}
+      {% endif %}
+      {% if can_give_feedback %}
+      <button class="btn btn-gold btn-sm" data-modal="feedback-modal">
+        <i data-lucide="star" width="14" height="14"></i> Leave Feedback
+      </button>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<div class="detail-grid">
+  <!-- Left: Main Content -->
+  <div style="display:flex;flex-direction:column;gap:1.5rem;">
+
+    <!-- Progress Steps -->
+    <div class="card">
+      <h3 style="font-size:0.875rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:var(--text-muted);margin-bottom:1.25rem;">Resolution Progress</h3>
+      <div class="steps">
+        {% with status=complaint.status %}
+        <div class="step {% if status == 'pending' %}active{% elif status != 'pending' %}done{% endif %}">
+          <div class="step-circle">
+            {% if status != 'pending' %}<i data-lucide="check" width="12" height="12"></i>
+            {% else %}1{% endif %}
+          </div>
+          <div class="step-label">Submitted</div>
+          <div class="step-line"></div>
+        </div>
+        <div class="step {% if status == 'under_review' %}active{% elif status == 'in_progress' or status == 'resolved' or status == 'closed' %}done{% endif %}">
+          <div class="step-circle">
+            {% if status == 'in_progress' or status == 'resolved' or status == 'closed' %}<i data-lucide="check" width="12" height="12"></i>
+            {% else %}2{% endif %}
+          </div>
+          <div class="step-label">Under Review</div>
+          <div class="step-line"></div>
+        </div>
+        <div class="step {% if status == 'in_progress' %}active{% elif status == 'resolved' or status == 'closed' %}done{% endif %}">
+          <div class="step-circle">
+            {% if status == 'resolved' or status == 'closed' %}<i data-lucide="check" width="12" height="12"></i>
+            {% else %}3{% endif %}
+          </div>
+          <div class="step-label">In Progress</div>
+          <div class="step-line"></div>
+        </div>
+        <div class="step {% if status == 'resolved' or status == 'closed' %}done{% endif %}">
+          <div class="step-circle">
+            {% if status == 'resolved' or status == 'closed' %}<i data-lucide="check" width="12" height="12"></i>
+            {% else %}4{% endif %}
+          </div>
+          <div class="step-label">Resolved</div>
+        </div>
+        {% endwith %}
+      </div>
+      <div class="progress-bar" style="margin-top:1rem;">
+        <div class="progress-fill" style="width:{{ complaint.status_percentage }}%;" data-width="{{ complaint.status_percentage }}%"></div>
+      </div>
+      <div class="text-xs text-muted" style="margin-top:0.35rem;text-align:right;">{{ complaint.status_percentage }}% complete</div>
+    </div>
+
+    <!-- Complaint Description -->
+    <div class="card">
+      <div class="card-header">
+        <h2 class="card-title"><i data-lucide="file-text" width="16" height="16" style="margin-right:0.4rem;vertical-align:middle;color:var(--primary);"></i> Complaint Details</h2>
+        <span class="complaint-id">{{ complaint.complaint_id }}</span>
+      </div>
+
+      <p style="font-size:0.9rem;line-height:1.8;color:var(--text-secondary);white-space:pre-line;">{{ complaint.description }}</p>
+
+      <div class="detail-meta" style="margin-top:1.5rem;padding-top:1.25rem;border-top:1px solid var(--border);">
+        <div class="meta-item">
+          <span class="meta-label">Category</span>
+          <span class="meta-value">{{ complaint.category.name|default:"Not specified" }}</span>
+        </div>
+        <div class="meta-item">
+          <span class="meta-label">Priority</span>
+          <span class="meta-value"><span class="badge {{ complaint.priority_color }}">{{ complaint.get_priority_display }}</span></span>
+        </div>
+        <div class="meta-item">
+          <span class="meta-label">Location</span>
+          <span class="meta-value">{{ complaint.location|default:"Not specified" }}</span>
+        </div>
+        <div class="meta-item">
+          <span class="meta-label">Submitted</span>
+          <span class="meta-value">{{ complaint.created_at|date:"d M Y, g:i A" }}</span>
+        </div>
+        {% if complaint.assigned_to %}
+        <div class="meta-item">
+          <span class="meta-label">Assigned To</span>
+          <span class="meta-value">{{ complaint.assigned_to.get_full_name }}</span>
+        </div>
+        {% endif %}
+        {% if complaint.resolved_at %}
+        <div class="meta-item">
+          <span class="meta-label">Resolved On</span>
+          <span class="meta-value">{{ complaint.resolved_at|date:"d M Y" }}</span>
+        </div>
+        {% endif %}
+        <div class="meta-item">
+          <span class="meta-label">Filed By</span>
+          <span class="meta-value">
+            {% if complaint.is_anonymous and not request.user.is_admin_user %}
+              Anonymous
+            {% else %}
+              {{ complaint.submitted_by.get_full_name|default:complaint.submitted_by.username }}
+            {% endif %}
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Attachments -->
+    {% if complaint.attachments.exists %}
+    <div class="card">
+      <div class="card-header">
+        <h2 class="card-title"><i data-lucide="paperclip" width="16" height="16" style="margin-right:0.4rem;vertical-align:middle;color:var(--primary);"></i> Attachments</h2>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:0.75rem;">
+        {% for attachment in complaint.attachments.all %}
+        <a href="{{ attachment.file.url }}" target="_blank" style="display:flex;align-items:center;gap:0.5rem;padding:0.75rem;border:1px solid var(--border);border-radius:var(--radius);text-decoration:none;color:var(--text-primary);transition:all 0.2s;" class="attachment-link">
+          {% if attachment.is_image %}
+          <i data-lucide="image" width="16" height="16" style="color:var(--primary);flex-shrink:0;"></i>
+          {% else %}
+          <i data-lucide="file" width="16" height="16" style="color:var(--text-muted);flex-shrink:0;"></i>
+          {% endif %}
+          <span style="font-size:0.78rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ attachment.original_name }}</span>
+        </a>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Resolution Timeline -->
+    <div class="card">
+      <div class="card-header">
+        <h2 class="card-title"><i data-lucide="git-branch" width="16" height="16" style="margin-right:0.4rem;vertical-align:middle;color:var(--primary);"></i> Resolution Timeline</h2>
+      </div>
+
+      <div class="timeline">
+        <!-- Filed event -->
+        <div class="timeline-item">
+          <div class="timeline-dot green"></div>
+          <div class="timeline-content">
+            <div class="timeline-meta">
+              <span class="timeline-author">Complaint Filed</span>
+              <span class="timeline-date">{{ complaint.created_at|date:"d M Y, g:i A" }}</span>
+            </div>
+            <p class="timeline-text">Complaint <strong>{{ complaint.complaint_id }}</strong> was submitted successfully and is awaiting review.</p>
+          </div>
+        </div>
+
+        {% for resolution in resolutions %}
+        <div class="timeline-item">
+          <div class="timeline-dot {% if resolution.is_public %}green{% else %}grey{% endif %}"></div>
+          <div class="timeline-content" style="{% if not resolution.is_public %}border-color:var(--border);background:var(--grey-50);{% endif %}">
+            <div class="timeline-meta">
+              <span class="timeline-author">
+                {{ resolution.resolved_by.get_full_name|default:resolution.resolved_by.username }}
+                {% if not resolution.is_public %}<span class="badge status-closed" style="margin-left:0.4rem;font-size:0.65rem;">Internal</span>{% endif %}
+              </span>
+              <span class="timeline-date">{{ resolution.created_at|date:"d M Y, g:i A" }}</span>
+            </div>
+            <p class="timeline-text">{{ resolution.notes }}</p>
+            {% if resolution.action_taken and request.user.is_admin_user %}
+            <div style="margin-top:0.5rem;padding:0.5rem;background:var(--grey-100);border-radius:var(--radius-sm);font-size:0.78rem;color:var(--text-muted);">
+              <strong>Action Taken:</strong> {{ resolution.action_taken }}
+            </div>
+            {% endif %}
+          </div>
+        </div>
+        {% empty %}
+        <div class="timeline-item">
+          <div class="timeline-dot grey"></div>
+          <div class="timeline-content" style="background:var(--grey-50);">
+            <p class="timeline-text" style="color:var(--text-muted);">Awaiting first response from the assigned team.</p>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Feedback display -->
+    {% if feedback %}
+    <div class="card" style="border-color:var(--gold-300);background:var(--gold-50);">
+      <div class="card-header">
+        <h2 class="card-title" style="color:var(--gold-600);">
+          <i data-lucide="star" width="16" height="16" style="margin-right:0.4rem;vertical-align:middle;"></i>
+          User Feedback
+        </h2>
+      </div>
+      <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.75rem;">
+        {% for i in "12345"|make_list %}
+        <i data-lucide="star" width="18" height="18" style="color:{% if forloop.counter <= feedback.rating %}var(--gold-400){% else %}var(--grey-300){% endif %};fill:{% if forloop.counter <= feedback.rating %}var(--gold-400){% else %}none{% endif %};"></i>
+        {% endfor %}
+        <span style="font-size:0.875rem;font-weight:600;color:var(--gold-600);">{{ feedback.rating }}/5</span>
+      </div>
+      {% if feedback.comment %}
+      <p style="font-size:0.875rem;color:var(--text-secondary);line-height:1.6;">"{{ feedback.comment }}"</p>
+      {% endif %}
+      <div class="text-xs text-muted" style="margin-top:0.75rem;">Submitted {{ feedback.created_at|naturalday }}</div>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- Right: Sidebar info -->
+  <div style="display:flex;flex-direction:column;gap:1rem;">
+    <div class="card">
+      <h3 style="font-size:0.8rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:var(--text-muted);margin-bottom:1rem;">Complaint Info</h3>
+      <div style="display:flex;flex-direction:column;gap:0.75rem;">
+        <div>
+          <div class="meta-label">Status</div>
+          <span class="badge {{ complaint.status_color }}" style="margin-top:0.25rem;">{{ complaint.get_status_display }}</span>
+        </div>
+        <div>
+          <div class="meta-label">Priority</div>
+          <span class="badge {{ complaint.priority_color }}" style="margin-top:0.25rem;">{{ complaint.get_priority_display }}</span>
+        </div>
+        <div>
+          <div class="meta-label">Complaint ID</div>
+          <div class="meta-value complaint-id" style="font-size:0.9rem;">{{ complaint.complaint_id }}</div>
+        </div>
+        <div>
+          <div class="meta-label">Category</div>
+          <div class="meta-value">{{ complaint.category.name|default:"—" }}</div>
+        </div>
+        {% if complaint.assigned_to %}
+        <div>
+          <div class="meta-label">Assigned To</div>
+          <div class="meta-value">{{ complaint.assigned_to.get_full_name }}</div>
+        </div>
+        {% endif %}
+        <div>
+          <div class="meta-label">Last Updated</div>
+          <div class="meta-value">{{ complaint.updated_at|naturaltime }}</div>
+        </div>
+      </div>
+    </div>
+
+    {% if can_give_feedback %}
+    <div class="card" style="background:var(--gold-50);border-color:var(--gold-200,#ffe08a);">
+      <h3 style="font-size:0.875rem;color:var(--gold-600);margin-bottom:0.5rem;">
+        <i data-lucide="star" width="14" height="14" style="vertical-align:middle;margin-right:0.3rem;"></i>
+        Rate this Resolution
+      </h3>
+      <p style="font-size:0.8rem;color:var(--text-secondary);margin-bottom:0.75rem;">Your complaint has been resolved. Let us know how we did.</p>
+      <button class="btn btn-gold btn-sm w-full" data-modal="feedback-modal">Leave Feedback</button>
+    </div>
+    {% endif %}
+
+    <div class="card" style="background:var(--grey-50);">
+      <h3 style="font-size:0.8rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:var(--text-muted);margin-bottom:0.75rem;">Activity</h3>
+      <div style="font-size:0.8rem;color:var(--text-secondary);">
+        <div style="display:flex;justify-content:space-between;padding:0.4rem 0;border-bottom:1px solid var(--border);">
+          <span>Updates</span>
+          <strong>{{ resolutions|length }}</strong>
+        </div>
+        <div style="display:flex;justify-content:space-between;padding:0.4rem 0;border-bottom:1px solid var(--border);">
+          <span>Attachments</span>
+          <strong>{{ complaint.attachments.count }}</strong>
+        </div>
+        <div style="display:flex;justify-content:space-between;padding:0.4rem 0;">
+          <span>Days Open</span>
+          <strong>
+            {% with days=complaint.created_at|timesince %}{{ days|truncatewords:2 }}{% endwith %}
+          </strong>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Update Status Modal (Admin/Staff) -->
+{% if can_manage %}
+<div class="modal-overlay" id="resolve-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 class="modal-title">Update Complaint Status</h3>
+      <button class="modal-close"><i data-lucide="x" width="16" height="16"></i></button>
+    </div>
+    <form method="post" action="{% url 'add_resolution' complaint.pk %}">
+      {% csrf_token %}
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label">New Status <span class="required">*</span></label>
+          {{ resolution_form.new_status }}
+        </div>
+        <div class="form-group">
+          <label class="form-label">Update Notes <span class="required">*</span></label>
+          {{ resolution_form.notes }}
+          <div class="form-hint">This message will be visible to the complainant.</div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Action Taken (Internal)</label>
+          {{ resolution_form.action_taken }}
+          <div class="form-hint">Internal notes — not visible to complainant unless checked below.</div>
+        </div>
+        <label class="checkbox-label">
+          {{ resolution_form.is_public }}
+          <span>Show this update to the complainant</span>
+        </label>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-ghost modal-close-btn">Cancel</button>
+        <button type="submit" class="btn btn-primary">
+          <i data-lucide="save" width="14" height="14"></i> Save Update
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endif %}
+
+<!-- Assign Modal (Admin only) -->
+{% if request.user.is_admin_user %}
+<div class="modal-overlay" id="assign-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 class="modal-title">Assign Complaint</h3>
+      <button class="modal-close"><i data-lucide="x" width="16" height="16"></i></button>
+    </div>
+    <form method="post" action="{% url 'assign_complaint' complaint.pk %}">
+      {% csrf_token %}
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label">Select Staff Member</label>
+          <select name="staff_id" class="form-input" required>
+            <option value="">-- Select Staff --</option>
+            {% for staff in staff_list %}
+            <option value="{{ staff.pk }}" {% if complaint.assigned_to == staff %}selected{% endif %}>
+              {{ staff.get_full_name|default:staff.username }} — {{ staff.department|default:"No department" }}
+            </option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-ghost modal-close-btn">Cancel</button>
+        <button type="submit" class="btn btn-primary">
+          <i data-lucide="user-check" width="14" height="14"></i> Assign
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endif %}
+
+<!-- Feedback Modal -->
+{% if can_give_feedback %}
+<div class="modal-overlay" id="feedback-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 class="modal-title">Rate the Resolution</h3>
+      <button class="modal-close"><i data-lucide="x" width="16" height="16"></i></button>
+    </div>
+    <form method="post" action="{% url 'add_feedback' complaint.pk %}">
+      {% csrf_token %}
+      <div class="modal-body">
+        <p style="font-size:0.875rem;color:var(--text-secondary);margin-bottom:1.25rem;">
+          How satisfied are you with the resolution of your complaint?
+        </p>
+        <div class="form-group" style="text-align:center;">
+          <label class="form-label">Your Rating</label>
+          <div class="star-rating" style="justify-content:center;gap:0.5rem;">
+            {% for i in "12345"|make_list %}
+            <button type="button" class="star-btn" aria-label="Rate {{ forloop.counter }} stars">
+              <i data-lucide="star" width="32" height="32" class="star-icon" style="fill:none;"></i>
+            </button>
+            {% endfor %}
+          </div>
+          <input type="hidden" name="rating" id="rating-value" value="0" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Comments (optional)</label>
+          {{ feedback_form.comment }}
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-ghost modal-close-btn">Cancel</button>
+        <button type="submit" class="btn btn-primary">
+          <i data-lucide="send" width="14" height="14"></i> Submit Feedback
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endif %}
+
+<style>
+.attachment-link:hover { box-shadow:var(--shadow-sm);border-color:var(--border-focus); }
+.modal-close-btn { cursor:pointer; }
+</style>
+<script>
+document.querySelectorAll('.modal-close-btn').forEach(btn => {
+  btn.addEventListener('click', () => btn.closest('.modal-overlay').classList.remove('show'));
+});
+</script>
+{% endblock %}

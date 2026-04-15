@@ -1,0 +1,122 @@
+{% extends "base/base.html" %}
+{% load static humanize %}
+
+{% block title %}Profile{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="page-header-inner">
+    <div>
+      <div class="breadcrumb">
+        <a href="{% url 'dashboard' %}"><i data-lucide="home" width="13" height="13"></i></a>
+        <span>/</span><span>Profile</span>
+      </div>
+      <h1 class="page-title">My Profile</h1>
+      <p class="page-desc">Manage your account information and preferences.</p>
+    </div>
+  </div>
+</div>
+
+<div style="display:grid;grid-template-columns:280px 1fr;gap:1.5rem;align-items:start;">
+  <!-- Profile Summary Card -->
+  <div class="card" style="text-align:center;padding:2rem 1.5rem;">
+    <div style="width:72px;height:72px;background:linear-gradient(135deg,var(--green-600),var(--green-400));border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;font-size:1.5rem;font-weight:700;color:white;font-family:var(--font-display);">
+      {% if request.user.profile_picture %}
+      <img src="{{ request.user.profile_picture.url }}" alt="Profile" style="width:72px;height:72px;border-radius:50%;object-fit:cover;">
+      {% else %}
+      {{ request.user.get_initials }}
+      {% endif %}
+    </div>
+    <h2 style="font-size:1.1rem;margin-bottom:0.25rem;">{{ request.user.get_full_name|default:request.user.username }}</h2>
+    <p style="font-size:0.8rem;color:var(--text-muted);margin-bottom:0.5rem;">{{ request.user.email }}</p>
+    <span class="badge status-resolved" style="display:inline-flex;">{{ request.user.get_role_display }}</span>
+
+    <div style="margin-top:1.5rem;padding-top:1.5rem;border-top:1px solid var(--border);text-align:left;display:flex;flex-direction:column;gap:0.75rem;">
+      {% if request.user.matric_number %}
+      <div class="meta-item">
+        <span class="meta-label">Matric Number</span>
+        <span class="meta-value">{{ request.user.matric_number }}</span>
+      </div>
+      {% endif %}
+      {% if request.user.staff_id %}
+      <div class="meta-item">
+        <span class="meta-label">Staff ID</span>
+        <span class="meta-value">{{ request.user.staff_id }}</span>
+      </div>
+      {% endif %}
+      {% if request.user.department %}
+      <div class="meta-item">
+        <span class="meta-label">Department</span>
+        <span class="meta-value">{{ request.user.department }}</span>
+      </div>
+      {% endif %}
+      <div class="meta-item">
+        <span class="meta-label">Member Since</span>
+        <span class="meta-value">{{ request.user.date_joined|date:"M Y" }}</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">Complaints Filed</span>
+        <span class="meta-value">{{ request.user.complaints.count }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit Form -->
+  <div class="card" style="padding:2rem;">
+    <div class="card-header">
+      <h2 class="card-title"><i data-lucide="edit" width="16" height="16" style="vertical-align:middle;margin-right:0.4rem;color:var(--primary);"></i> Edit Profile</h2>
+    </div>
+
+    <form method="post" enctype="multipart/form-data" data-validate>
+      {% csrf_token %}
+
+      <div class="grid-2">
+        <div class="form-group">
+          <label class="form-label">First Name</label>
+          {{ form.first_name }}
+        </div>
+        <div class="form-group">
+          <label class="form-label">Last Name</label>
+          {{ form.last_name }}
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Email Address</label>
+        {{ form.email }}
+      </div>
+
+      <div class="grid-2">
+        <div class="form-group">
+          <label class="form-label">Department</label>
+          {{ form.department }}
+        </div>
+        <div class="form-group">
+          <label class="form-label">Phone Number</label>
+          {{ form.phone_number }}
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Profile Picture</label>
+        {{ form.profile_picture }}
+        <div class="form-hint">Optional. Upload a profile picture (JPEG or PNG).</div>
+      </div>
+
+      <div class="flex justify-end gap-3">
+        <a href="{% url 'dashboard' %}" class="btn btn-ghost">Cancel</a>
+        <button type="submit" class="btn btn-primary">
+          <i data-lucide="save" width="14" height="14"></i>
+          Save Changes
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<style>
+@media(max-width:768px) {
+  div[style*="grid-template-columns:280px"] { grid-template-columns:1fr; }
+}
+</style>
+{% endblock %}

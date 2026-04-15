@@ -1,0 +1,247 @@
+{% extends "base/base.html" %}
+{% load static humanize %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="page-header-inner">
+    <div>
+      <div class="breadcrumb">
+        <i data-lucide="home" width="13" height="13"></i>
+        <span>/</span>
+        <span>Dashboard</span>
+      </div>
+      <h1 class="page-title">
+        {% if is_admin_view %}Administration Dashboard
+        {% elif is_staff_view %}Staff Dashboard
+        {% else %}My Dashboard
+        {% endif %}
+      </h1>
+      <p class="page-desc">
+        Welcome back, <strong>{{ request.user.get_full_name|default:request.user.username }}</strong>.
+        {% if is_admin_view %}Here is an overview of all complaints.
+        {% elif is_staff_view %}Here are your assigned complaints.
+        {% else %}Here is the status of your complaints.
+        {% endif %}
+      </p>
+    </div>
+    <a href="{% url 'file_complaint' %}" class="btn btn-primary">
+      <i data-lucide="plus" width="16" height="16"></i> New Complaint
+    </a>
+  </div>
+</div>
+
+<!-- Stats -->
+<div class="stats-grid">
+  {% if is_admin_view %}
+  <div class="stat-card">
+    <div class="stat-icon green"><i data-lucide="inbox" width="22" height="22"></i></div>
+    <div>
+      <div class="stat-value">{{ stats.total }}</div>
+      <div class="stat-label">Total Complaints</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon gold"><i data-lucide="clock" width="22" height="22"></i></div>
+    <div>
+      <div class="stat-value">{{ stats.pending }}</div>
+      <div class="stat-label">Pending</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon blue"><i data-lucide="refresh-cw" width="22" height="22"></i></div>
+    <div>
+      <div class="stat-value">{{ stats.in_progress }}</div>
+      <div class="stat-label">In Progress</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon green"><i data-lucide="check-circle" width="22" height="22"></i></div>
+    <div>
+      <div class="stat-value">{{ stats.resolved }}</div>
+      <div class="stat-label">Resolved</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon red"><i data-lucide="alert-triangle" width="22" height="22"></i></div>
+    <div>
+      <div class="stat-value">{{ stats.urgent }}</div>
+      <div class="stat-label">Urgent</div>
+    </div>
+  </div>
+  {% if avg_rating %}
+  <div class="stat-card">
+    <div class="stat-icon gold"><i data-lucide="star" width="22" height="22"></i></div>
+    <div>
+      <div class="stat-value">{{ avg_rating }}/5</div>
+      <div class="stat-label">Avg. Rating</div>
+    </div>
+  </div>
+  {% endif %}
+
+  {% elif is_staff_view %}
+  <div class="stat-card">
+    <div class="stat-icon blue"><i data-lucide="clipboard-list" width="22" height="22"></i></div>
+    <div>
+      <div class="stat-value">{{ stats.assigned }}</div>
+      <div class="stat-label">Assigned to Me</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon gold"><i data-lucide="clock" width="22" height="22"></i></div>
+    <div>
+      <div class="stat-value">{{ stats.pending }}</div>
+      <div class="stat-label">Pending Action</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon blue"><i data-lucide="loader" width="22" height="22"></i></div>
+    <div>
+      <div class="stat-value">{{ stats.in_progress }}</div>
+      <div class="stat-label">In Progress</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon green"><i data-lucide="check-circle" width="22" height="22"></i></div>
+    <div>
+      <div class="stat-value">{{ stats.resolved }}</div>
+      <div class="stat-label">Resolved</div>
+    </div>
+  </div>
+
+  {% else %}
+  <div class="stat-card">
+    <div class="stat-icon green"><i data-lucide="inbox" width="22" height="22"></i></div>
+    <div>
+      <div class="stat-value">{{ stats.total }}</div>
+      <div class="stat-label">My Complaints</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon gold"><i data-lucide="clock" width="22" height="22"></i></div>
+    <div>
+      <div class="stat-value">{{ stats.pending }}</div>
+      <div class="stat-label">Pending</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon blue"><i data-lucide="refresh-cw" width="22" height="22"></i></div>
+    <div>
+      <div class="stat-value">{{ stats.in_progress }}</div>
+      <div class="stat-label">In Progress</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon green"><i data-lucide="check-circle" width="22" height="22"></i></div>
+    <div>
+      <div class="stat-value">{{ stats.resolved }}</div>
+      <div class="stat-label">Resolved</div>
+    </div>
+  </div>
+  {% endif %}
+</div>
+
+<!-- Recent Complaints -->
+<div class="card">
+  <div class="card-header">
+    <h2 class="card-title">
+      <i data-lucide="list" width="18" height="18" style="margin-right:0.4rem;vertical-align:middle;color:var(--primary);"></i>
+      Recent Complaints
+    </h2>
+    <a href="{% url 'complaint_list' %}" class="btn btn-ghost btn-sm">
+      View All <i data-lucide="arrow-right" width="14" height="14"></i>
+    </a>
+  </div>
+
+  {% if complaints %}
+  <div style="overflow-x:auto;">
+    <table class="complaint-table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Title</th>
+          <th>Category</th>
+          <th>Priority</th>
+          <th>Status</th>
+          {% if is_admin_view %}<th>Filed By</th>{% endif %}
+          <th>Date</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for complaint in complaints %}
+        <tr>
+          <td><span class="complaint-id">{{ complaint.complaint_id }}</span></td>
+          <td>
+            <a href="{% url 'complaint_detail' complaint.pk %}" class="complaint-title-link">
+              {{ complaint.title|truncatechars:50 }}
+            </a>
+            {% if complaint.location %}<div class="text-xs text-muted"><i data-lucide="map-pin" width="11" height="11"></i> {{ complaint.location|truncatechars:30 }}</div>{% endif %}
+          </td>
+          <td>
+            {% if complaint.category %}
+            <span style="font-size:0.8rem;color:var(--text-secondary);">{{ complaint.category.name }}</span>
+            {% else %}<span class="text-muted text-xs">Uncategorised</span>{% endif %}
+          </td>
+          <td><span class="badge {{ complaint.priority_color }}">{{ complaint.get_priority_display }}</span></td>
+          <td><span class="badge {{ complaint.status_color }}">{{ complaint.get_status_display }}</span></td>
+          {% if is_admin_view %}
+          <td>
+            <span style="font-size:0.8rem;">
+              {% if complaint.is_anonymous %}Anonymous{% else %}{{ complaint.submitted_by.get_full_name|default:complaint.submitted_by.username }}{% endif %}
+            </span>
+          </td>
+          {% endif %}
+          <td><span class="text-xs text-muted">{{ complaint.created_at|naturalday }}</span></td>
+          <td>
+            <a href="{% url 'complaint_detail' complaint.pk %}" class="btn btn-ghost btn-sm btn-icon" title="View details">
+              <i data-lucide="eye" width="14" height="14"></i>
+            </a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty-state">
+    <div class="empty-state-icon">
+      <i data-lucide="inbox" width="28" height="28"></i>
+    </div>
+    <h3>No complaints yet</h3>
+    <p>{% if is_student_view %}You have not filed any complaints yet. Use the button below to get started.{% else %}No complaints have been assigned or filed.{% endif %}</p>
+    <a href="{% url 'file_complaint' %}" class="btn btn-primary">
+      <i data-lucide="plus-circle" width="16" height="16"></i> File a Complaint
+    </a>
+  </div>
+  {% endif %}
+</div>
+
+<!-- Quick actions for students -->
+{% if is_student_view %}
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1rem;margin-top:1.5rem;">
+  <a href="{% url 'file_complaint' %}" style="display:flex;align-items:center;gap:0.75rem;padding:1.25rem;background:var(--green-50);border:1px solid var(--green-200);border-radius:var(--radius-md);text-decoration:none;color:var(--green-700);font-weight:600;font-size:0.875rem;transition:all 0.2s;">
+    <div style="width:36px;height:36px;background:var(--green-100);border-radius:var(--radius);display:flex;align-items:center;justify-content:center;">
+      <i data-lucide="plus-circle" width="18" height="18"></i>
+    </div>
+    File New Complaint
+  </a>
+  <a href="{% url 'complaint_list' %}" style="display:flex;align-items:center;gap:0.75rem;padding:1.25rem;background:var(--gold-50);border:1px solid var(--gold-200,#ffe08a);border-radius:var(--radius-md);text-decoration:none;color:var(--gold-600);font-weight:600;font-size:0.875rem;transition:all 0.2s;">
+    <div style="width:36px;height:36px;background:var(--gold-100);border-radius:var(--radius);display:flex;align-items:center;justify-content:center;">
+      <i data-lucide="list" width="18" height="18"></i>
+    </div>
+    View All Complaints
+  </a>
+  <a href="{% url 'notifications' %}" style="display:flex;align-items:center;gap:0.75rem;padding:1.25rem;background:#ebf8ff;border:1px solid #bee3f8;border-radius:var(--radius-md);text-decoration:none;color:#2b6cb0;font-weight:600;font-size:0.875rem;transition:all 0.2s;">
+    <div style="width:36px;height:36px;background:#e8f4fd;border-radius:var(--radius);display:flex;align-items:center;justify-content:center;">
+      <i data-lucide="bell" width="18" height="18"></i>
+    </div>
+    Notifications
+    {% if unread_notifications %}
+    <span style="margin-left:auto;background:#e53e3e;color:white;font-size:0.7rem;padding:0.1rem 0.4rem;border-radius:99px;">{{ unread_notifications }}</span>
+    {% endif %}
+  </a>
+</div>
+{% endif %}
+{% endblock %}

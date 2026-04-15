@@ -1,0 +1,267 @@
+{% extends "base/base.html" %}
+{% load static %}
+
+{% block title %}Home{% endblock %}
+
+{% block sidebar %}{% endblock %}
+
+{% block full_content %}
+<!-- Hero Section -->
+<section class="hero-clean">
+  <div class="container hero-grid">
+
+    <!-- LEFT CONTENT -->
+    <div class="hero-text">
+      
+
+      <h1>
+        Your Voice Matters.<br>
+        <span>We Take Action.</span>
+      </h1>
+
+      <p class="hero-desc">
+        Submit complaints, track progress, and receive timely resolutions through a secure,
+        transparent, and efficient platform built for students and staff.
+      </p>
+
+      <div class="hero-actions">
+        {% if user.is_authenticated %}
+        <a href="{% url 'file_complaint' %}" class="btn btn-primary btn-lg">
+          <i data-lucide="plus-circle" width="18" height="18"></i>
+          File Complaint
+        </a>
+        <a href="{% url 'dashboard' %}" class="btn btn-outline btn-lg">
+          <i data-lucide="layout-dashboard" width="18" height="18"></i>
+          Dashboard
+        </a>
+        {% else %}
+        <a href="{% url 'register' %}" class="btn btn-primary btn-lg">
+          <i data-lucide="user-plus" width="18" height="18"></i>
+          Get Started
+        </a>
+        <a href="{% url 'login' %}" class="btn btn-outline btn-lg">
+          <i data-lucide="log-in" width="18" height="18"></i>
+          Sign In
+        </a>
+        {% endif %}
+      </div>
+
+     <div class="hero-stats">
+  <div class="stat-card">
+    <div class="stat-icon"><i data-lucide="file-text"></i></div>
+    <div>
+      <div class="stat-value">{{ stats.total|default:"0" }}</div>
+      <div class="stat-label">Total Complaints</div>
+    </div>
+  </div>
+
+  <!-- stat -->
+  <div class="stat-card">
+    <div class="stat-icon success"><i data-lucide="check-circle"></i></div>
+    <div>
+      <div class="stat-value">{{ stats.resolved|default:"0" }}</div>
+      <div class="stat-label">Resolved</div>
+    </div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-icon warning"><i data-lucide="layers"></i></div>
+    <div>
+      <div class="stat-value">{{ stats.categories|default:"0" }}</div>
+      <div class="stat-label">Categories</div>
+    </div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-icon"><i data-lucide="clock"></i></div>
+    <div>
+      <div class="stat-value">48h</div>
+      <div class="stat-label">Response Time</div>
+    </div>
+  </div>
+</div>
+   
+</div>
+ <!-- RIGHT SVG -->
+    <div class="hero-illustration">
+  <svg viewBox="0 0 500 400">
+
+    <!-- Shadow -->
+    <ellipse cx="250" cy="330" rx="120" ry="20" fill="#e5e7eb"/>
+
+    <!-- Box -->
+    <rect x="130" y="150" width="240" height="150" rx="18"
+          fill="#ffffff" stroke="var(--primary)" stroke-width="2"/>
+
+    <!-- Inner depth -->
+    <rect x="150" y="170" width="200" height="110" rx="12"
+          fill="#f9fafb"/>
+
+    <!-- Slot -->
+    <rect x="180" y="135" width="140" height="20" rx="6"
+          fill="var(--primary)"/>
+
+    <!-- Paper -->
+    <rect x="210" y="60" width="90" height="110" rx="12"
+          fill="#ffffff" stroke="#d1d5db"/>
+
+    <line x1="225" y1="90" x2="285" y2="90" stroke="#9ca3af"/>
+    <line x1="225" y1="110" x2="285" y2="110" stroke="#9ca3af"/>
+
+    <!-- Arrow -->
+    <path d="M255 120 L255 145" stroke="var(--primary)" stroke-width="3"/>
+    <polygon points="250,140 260,140 255,150" fill="var(--primary)"/>
+
+    <!-- Floating icons -->
+    <circle cx="120" cy="90" r="10" fill="#16a34a" opacity="0.1"/>
+    <circle cx="380" cy="70" r="8" fill="#f59e0b" opacity="0.2"/>
+
+    <!-- Check -->
+    <circle cx="360" cy="120" r="26" fill="#16a34a" opacity="0.1"/>
+    <path d="M350 120 L358 128 L372 110"
+          stroke="#16a34a" stroke-width="3" fill="none"/>
+
+  </svg>
+  </div>
+</section>
+<!-- How it Works -->
+<section id="how-it-works" style="padding:4rem 0;background:var(--off-white);border-bottom:1px solid var(--border);">
+  <div class="container">
+    <div class="section-header">
+      <span class="section-label">Simple Process</span>
+      <h2 class="section-title">How It Works</h2>
+      <p class="section-desc">Filing and tracking your complaint has never been easier. Three simple steps to resolution.</p>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:0;position:relative;">
+      {% for step in "123"|make_list %}
+      <div style="text-align:center;padding:2rem 1.5rem;position:relative;">
+        {% if not forloop.last %}
+        <div style="position:absolute;top:3.5rem;right:0;left:50%;height:2px;background:linear-gradient(90deg,var(--green-200),var(--border));display:none;" class="step-connector"></div>
+        {% endif %}
+        <div style="width:64px;height:64px;border-radius:50%;background:{% if forloop.counter == 1 %}var(--green-600){% elif forloop.counter == 2 %}var(--gold-400){% else %}var(--green-400){% endif %};color:{% if forloop.counter == 2 %}var(--grey-800){% else %}white{% endif %};display:flex;align-items:center;justify-content:center;margin:0 auto 1.25rem;font-family:var(--font-display);font-size:1.5rem;font-weight:700;box-shadow:var(--shadow-md);">
+          {{ forloop.counter }}
+        </div>
+        <h3 style="font-size:1rem;margin-bottom:0.5rem;">
+          {% if forloop.counter == 1 %}Submit Your Complaint
+          {% elif forloop.counter == 2 %}Track the Progress
+          {% else %}Receive Resolution
+          {% endif %}
+        </h3>
+        <p style="font-size:0.875rem;color:var(--text-secondary);line-height:1.6;font-family:var(--font-body);">
+          {% if forloop.counter == 1 %}Fill out the complaint form with details, attach supporting documents, and set your priority level.
+          {% elif forloop.counter == 2 %}Monitor your complaint status in real-time through your personalized dashboard with timeline updates.
+          {% else %}Receive a detailed resolution, provide feedback, and rate the quality of service received.
+          {% endif %}
+        </p>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<!-- Features -->
+<section id="features" class="features-section">
+  <div class="container">
+    <div class="section-header">
+      <span class="section-label">Platform Features</span>
+      <h2 class="section-title">Everything You Need</h2>
+      <p class="section-desc">A comprehensive system built to ensure every complaint is heard, tracked, and resolved.</p>
+    </div>
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon">
+          <i data-lucide="file-plus" width="24" height="24"></i>
+        </div>
+        <div class="feature-title">Easy Complaint Filing</div>
+        <p class="feature-desc">Submit complaints in minutes with our intuitive form. Attach documents, set priority, and track from submission to resolution.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon" style="background:var(--gold-100);color:var(--gold-600);">
+          <i data-lucide="activity" width="24" height="24"></i>
+        </div>
+        <div class="feature-title">Real-Time Tracking</div>
+        <p class="feature-desc">Visual progress timelines and instant status updates keep you informed at every stage of the resolution process.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon" style="background:#e8f0fe;color:#1a73e8;">
+          <i data-lucide="users" width="24" height="24"></i>
+        </div>
+        <div class="feature-title">Role-Based Access</div>
+        <p class="feature-desc">Dedicated dashboards for students, staff, and administrators ensure the right people see and act on the right information.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon" style="background:#fce8e6;color:#d93025;">
+          <i data-lucide="bell" width="24" height="24"></i>
+        </div>
+        <div class="feature-title">Smart Notifications</div>
+        <p class="feature-desc">Get notified when your complaint status changes, when staff respond, or when a resolution has been reached.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon" style="background:#f3e8ff;color:#7c3aed;">
+          <i data-lucide="star" width="24" height="24"></i>
+        </div>
+        <div class="feature-title">Resolution Feedback</div>
+        <p class="feature-desc">Rate the quality of resolutions and provide feedback to help the university continuously improve its services.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon" style="background:#e0f2fe;color:#0369a1;">
+          <i data-lucide="shield" width="24" height="24"></i>
+        </div>
+        <div class="feature-title">Confidentiality</div>
+        <p class="feature-desc">Option to submit complaints anonymously ensures users feel safe reporting sensitive issues without fear of reprisal.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Complaint Categories -->
+{% if categories %}
+<section id="categories" style="padding:3rem 0;background:var(--off-white);border-top:1px solid var(--border);">
+  <div class="container">
+    <div class="section-header">
+      <span class="section-label">Complaint Categories</span>
+      <h2 class="section-title">What Can You Report?</h2>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:1rem;">
+      {% for category in categories %}
+      <a href="{% url 'file_complaint' %}" style="display:flex;flex-direction:column;align-items:center;gap:0.75rem;padding:1.5rem 1rem;background:white;border:1px solid var(--border);border-radius:var(--radius-md);text-align:center;text-decoration:none;transition:all 0.2s;color:var(--text-primary);" class="category-card">
+        <div style="width:44px;height:44px;background:var(--green-50);border-radius:var(--radius);display:flex;align-items:center;justify-content:center;color:var(--primary);">
+          <i data-lucide="{{ category.icon|default:'folder' }}" width="22" height="22"></i>
+        </div>
+        <span style="font-size:0.875rem;font-weight:600;">{{ category.name }}</span>
+      </a>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<!-- CTA -->
+<section style="padding:4rem 0;background:linear-gradient(135deg,var(--green-800),var(--green-600));color:white;text-align:center;">
+  <div class="container">
+    <h2 style="font-family:var(--font-display);font-size:2rem;color:white;margin-bottom:1rem;">Ready to File a Complaint?</h2>
+    <p style="color:rgba(255,255,255,0.75);margin-bottom:2rem;max-width:480px;margin-left:auto;margin-right:auto;font-family:var(--font-body);">
+      Your feedback drives improvement. Join thousands of students and staff who have already used this platform.
+    </p>
+    {% if user.is_authenticated %}
+    <a href="{% url 'file_complaint' %}" class="btn btn-gold btn-lg">
+      <i data-lucide="plus-circle" width="18" height="18"></i> File a Complaint Now
+    </a>
+    {% else %}
+    <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;">
+      <a href="{% url 'register' %}" class="btn btn-gold btn-lg">
+        <i data-lucide="user-plus" width="18" height="18"></i> Create Account
+      </a>
+      <a href="{% url 'login' %}" class="btn btn-lg" style="background:rgba(255,255,255,0.12);color:white;border-color:rgba(255,255,255,0.3);">
+        <i data-lucide="log-in" width="18" height="18"></i> Sign In
+      </a>
+    </div>
+    {% endif %}
+  </div>
+</section>
+
+<style>
+.category-card:hover { box-shadow: var(--shadow-md); transform: translateY(-3px); border-color: var(--green-300); }
+@media(min-width:769px) { .step-connector { display:block !important; } }
+</style>
+{% endblock %}

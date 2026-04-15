@@ -1,0 +1,171 @@
+{% extends "base/base.html" %}
+{% load static humanize %}
+
+{% block title %}Admin Overview{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="page-header-inner">
+    <div>
+      <div class="breadcrumb">
+        <a href="{% url 'dashboard' %}"><i data-lucide="home" width="13" height="13"></i></a>
+        <span>/</span><span>Admin Overview</span>
+      </div>
+      <h1 class="page-title">System Overview</h1>
+      <p class="page-desc">Analytics and management overview for all complaints in the system.</p>
+    </div>
+    <div style="display:flex;gap:0.5rem;">
+      <a href="{% url 'complaint_list' %}" class="btn btn-outline btn-sm">
+        <i data-lucide="list" width="14" height="14"></i> Manage Complaints
+      </a>
+      <a href="/admin/" class="btn btn-ghost btn-sm">
+        <i data-lucide="settings" width="14" height="14"></i> Admin Panel
+      </a>
+    </div>
+  </div>
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:1.5rem;">
+  <!-- Status Breakdown -->
+  <div class="card">
+    <div class="card-header">
+      <h2 class="card-title"><i data-lucide="pie-chart" width="16" height="16" style="vertical-align:middle;margin-right:0.4rem;color:var(--primary);"></i> Status Breakdown</h2>
+    </div>
+    {% for label, count in complaints_by_status.items %}
+    <div style="margin-bottom:1rem;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.35rem;">
+        <span style="font-size:0.875rem;font-weight:500;">{{ label }}</span>
+        <span style="font-size:0.875rem;font-weight:700;color:var(--grey-800);">{{ count }}</span>
+      </div>
+      {% with total=complaints_by_status.values|length %}
+      <div class="progress-bar">
+        <div class="progress-fill" style="width:{% widthratio count 100 100 %}%;background:{% if label == 'Resolved' %}var(--green-500){% elif label == 'Pending' %}#7c3aed{% elif label == 'Under Review' %}var(--gold-400){% elif label == 'In Progress' %}#2b6cb0{% else %}var(--grey-400){% endif %};" data-width="{{ count }}"></div>
+      </div>
+      {% endwith %}
+    </div>
+    {% endfor %}
+  </div>
+
+  <!-- Complaints by Category -->
+  <div class="card">
+    <div class="card-header">
+      <h2 class="card-title"><i data-lucide="tag" width="16" height="16" style="vertical-align:middle;margin-right:0.4rem;color:var(--primary);"></i> By Category</h2>
+    </div>
+    {% for category in complaints_by_category %}
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:0.5rem 0;border-bottom:1px solid var(--border);">
+      <div style="display:flex;align-items:center;gap:0.5rem;">
+        <div style="width:8px;height:8px;border-radius:50%;background:var(--green-500);"></div>
+        <span style="font-size:0.875rem;">{{ category.name }}</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:0.75rem;">
+        <div style="width:80px;" class="progress-bar">
+          <div class="progress-fill" data-width="{{ category.count }}px" style="width:{{ category.count|floatformat:0 }}0px;max-width:80px;"></div>
+        </div>
+        <span style="font-size:0.875rem;font-weight:700;min-width:24px;text-align:right;">{{ category.count }}</span>
+      </div>
+    </div>
+    {% empty %}
+    <p style="font-size:0.875rem;color:var(--text-muted);text-align:center;padding:2rem 0;">No data available yet.</p>
+    {% endfor %}
+  </div>
+</div>
+
+<!-- Staff Performance & Feedback -->
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:1.5rem;">
+  <!-- Staff List -->
+  <div class="card">
+    <div class="card-header">
+      <h2 class="card-title"><i data-lucide="users" width="16" height="16" style="vertical-align:middle;margin-right:0.4rem;color:var(--primary);"></i> Staff Members</h2>
+    </div>
+    {% for member in staff_members %}
+    <div style="display:flex;align-items:center;gap:0.75rem;padding:0.75rem 0;border-bottom:1px solid var(--border);">
+      <div style="width:36px;height:36px;background:linear-gradient(135deg,var(--green-500),var(--green-400));border-radius:50%;display:flex;align-items:center;justify-content:center;color:white;font-size:0.75rem;font-weight:700;flex-shrink:0;">
+        {{ member.get_initials }}
+      </div>
+      <div style="flex:1;">
+        <div style="font-size:0.875rem;font-weight:600;">{{ member.get_full_name|default:member.username }}</div>
+        <div class="text-xs text-muted">{{ member.department|default:"No department" }}</div>
+      </div>
+      <div style="text-align:right;">
+        <div style="font-size:0.8rem;font-weight:700;color:var(--primary);">{{ member.assigned_complaints.count }}</div>
+        <div class="text-xs text-muted">assigned</div>
+      </div>
+    </div>
+    {% empty %}
+    <div class="empty-state" style="padding:2rem;">
+      <div class="empty-state-icon"><i data-lucide="users" width="24" height="24"></i></div>
+      <p>No staff members registered yet.</p>
+    </div>
+    {% endfor %}
+  </div>
+
+  <!-- Feedback Summary -->
+  <div class="card">
+    <div class="card-header">
+      <h2 class="card-title"><i data-lucide="star" width="16" height="16" style="vertical-align:middle;margin-right:0.4rem;color:var(--gold-500);"></i> User Feedback Summary</h2>
+    </div>
+    <div style="text-align:center;padding:1.5rem 0;">
+      <div style="font-size:3rem;font-weight:700;color:var(--grey-800);font-family:var(--font-display);">{{ avg_rating }}</div>
+      <div style="display:flex;justify-content:center;gap:0.25rem;margin:0.5rem 0;">
+        {% for i in "12345"|make_list %}
+        <i data-lucide="star" width="20" height="20" style="color:{% if forloop.counter <= avg_rating|floatformat:'0' %}var(--gold-400){% else %}var(--grey-300){% endif %};fill:{% if forloop.counter <= avg_rating|floatformat:'0' %}var(--gold-400){% else %}none{% endif %};"></i>
+        {% endfor %}
+      </div>
+      <div class="text-sm text-muted">out of 5 &bull; {{ total_feedback }} review{{ total_feedback|pluralize }}</div>
+    </div>
+    {% if total_feedback == 0 %}
+    <div class="empty-state" style="padding:1rem;">
+      <p>No feedback submitted yet.</p>
+    </div>
+    {% else %}
+    <div style="padding-top:1rem;border-top:1px solid var(--border);">
+      {% for rating in "54321"|make_list %}
+      <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.5rem;">
+        <span style="font-size:0.8rem;min-width:12px;">{{ rating }}</span>
+        <i data-lucide="star" width="12" height="12" style="color:var(--gold-400);fill:var(--gold-400);"></i>
+        <div class="progress-bar" style="flex:1;">
+          <div class="progress-fill" style="width:40%;"></div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="card">
+  <div class="card-header">
+    <h2 class="card-title"><i data-lucide="zap" width="16" height="16" style="vertical-align:middle;margin-right:0.4rem;color:var(--gold-500);"></i> Quick Actions</h2>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:1rem;">
+    <a href="{% url 'complaint_list' %}?status=pending" style="display:flex;flex-direction:column;align-items:center;gap:0.5rem;padding:1.25rem;background:var(--grey-50);border:1px solid var(--border);border-radius:var(--radius-md);text-decoration:none;color:var(--text-primary);text-align:center;transition:all 0.2s;" class="quick-action">
+      <i data-lucide="clock" width="24" height="24" style="color:#6b46c1;"></i>
+      <span style="font-size:0.875rem;font-weight:600;">Pending</span>
+      <span class="text-xs text-muted">Review pending complaints</span>
+    </a>
+    <a href="{% url 'complaint_list' %}?priority=urgent" style="display:flex;flex-direction:column;align-items:center;gap:0.5rem;padding:1.25rem;background:var(--grey-50);border:1px solid var(--border);border-radius:var(--radius-md);text-decoration:none;color:var(--text-primary);text-align:center;transition:all 0.2s;" class="quick-action">
+      <i data-lucide="alert-triangle" width="24" height="24" style="color:#e53e3e;"></i>
+      <span style="font-size:0.875rem;font-weight:600;">Urgent</span>
+      <span class="text-xs text-muted">Handle urgent complaints</span>
+    </a>
+    <a href="/admin/complaints/complaint/" style="display:flex;flex-direction:column;align-items:center;gap:0.5rem;padding:1.25rem;background:var(--grey-50);border:1px solid var(--border);border-radius:var(--radius-md);text-decoration:none;color:var(--text-primary);text-align:center;transition:all 0.2s;" class="quick-action">
+      <i data-lucide="settings" width="24" height="24" style="color:var(--primary);"></i>
+      <span style="font-size:0.875rem;font-weight:600;">Manage</span>
+      <span class="text-xs text-muted">Admin panel</span>
+    </a>
+    <a href="/admin/accounts/user/" style="display:flex;flex-direction:column;align-items:center;gap:0.5rem;padding:1.25rem;background:var(--grey-50);border:1px solid var(--border);border-radius:var(--radius-md);text-decoration:none;color:var(--text-primary);text-align:center;transition:all 0.2s;" class="quick-action">
+      <i data-lucide="users" width="24" height="24" style="color:#2b6cb0;"></i>
+      <span style="font-size:0.875rem;font-weight:600;">Users</span>
+      <span class="text-xs text-muted">Manage users</span>
+    </a>
+  </div>
+</div>
+
+<style>
+.quick-action:hover { box-shadow:var(--shadow-md);transform:translateY(-2px); }
+@media(max-width:768px) {
+  div[style*="grid-template-columns:1fr 1fr"] { grid-template-columns:1fr !important; }
+}
+</style>
+{% endblock %}

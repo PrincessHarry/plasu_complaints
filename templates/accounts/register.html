@@ -1,0 +1,115 @@
+{% extends "base/base.html" %}
+{% load static %}
+
+{% block title %}Register{% endblock %}
+{% block sidebar %}{% endblock %}
+
+{% block full_content %}
+<div style="min-height:calc(100vh - var(--nav-height));display:flex;align-items:center;justify-content:center;padding:2rem 1rem;background:var(--off-white);">
+  <div style="width:100%;max-width:560px;">
+    <div style="text-align:center;margin-bottom:2rem;">
+      <div style="width:56px;height:56px;background:linear-gradient(135deg,var(--green-600),var(--green-800));border-radius:var(--radius-md);display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+          <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+          <path d="M2 17l10 5 10-5"/>
+          <path d="M2 12l10 5 10-5"/>
+        </svg>
+      </div>
+      <h1 style="font-family:var(--font-display);font-size:1.5rem;color:var(--grey-800);margin-bottom:0.25rem;">Create Account</h1>
+      <p style="font-size:0.875rem;color:var(--text-muted);">Join the PSU Complaints Portal</p>
+    </div>
+
+    <div class="card" style="padding:2rem;">
+      {% if form.non_field_errors %}
+      <div class="alert alert-error" style="margin-bottom:1.25rem;">
+        <i data-lucide="alert-circle" width="16" height="16" style="flex-shrink:0;"></i>
+        <div>{% for e in form.non_field_errors %}<div>{{ e }}</div>{% endfor %}</div>
+      </div>
+      {% endif %}
+
+      <form method="post" data-validate>
+        {% csrf_token %}
+
+        <div class="grid-2">
+          <div class="form-group">
+            <label class="form-label">First Name <span class="required">*</span></label>
+            {{ form.first_name }}
+            {% if form.first_name.errors %}<div class="form-error">{{ form.first_name.errors.0 }}</div>{% endif %}
+          </div>
+          <div class="form-group">
+            <label class="form-label">Last Name <span class="required">*</span></label>
+            {{ form.last_name }}
+            {% if form.last_name.errors %}<div class="form-error">{{ form.last_name.errors.0 }}</div>{% endif %}
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Username <span class="required">*</span></label>
+          {{ form.username }}
+          {% if form.username.errors %}<div class="form-error">{{ form.username.errors.0 }}</div>{% endif %}
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Email Address <span class="required">*</span></label>
+          {{ form.email }}
+          {% if form.email.errors %}<div class="form-error">{{ form.email.errors.0 }}</div>{% endif %}
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">I am a <span class="required">*</span></label>
+          {{ form.role }}
+          {% if form.role.errors %}<div class="form-error">{{ form.role.errors.0 }}</div>{% endif %}
+        </div>
+
+        <div id="matric-group" class="form-group" style="display:none;">
+          <label class="form-label">Matric Number <span class="required">*</span></label>
+          {{ form.matric_number }}
+          {% if form.matric_number.errors %}<div class="form-error">{{ form.matric_number.errors.0 }}</div>{% endif %}
+        </div>
+
+        <div id="staffid-group" class="form-group" style="display:none;">
+          <label class="form-label">Staff ID <span class="required">*</span></label>
+          {{ form.staff_id }}
+          {% if form.staff_id.errors %}<div class="form-error">{{ form.staff_id.errors.0 }}</div>{% endif %}
+        </div>
+
+        <div class="grid-2">
+          <div class="form-group">
+            <label class="form-label">Department</label>
+            {{ form.department }}
+          </div>
+          <div class="form-group">
+            <label class="form-label">Phone Number</label>
+            {{ form.phone_number }}
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div class="form-group">
+            <label class="form-label">Password <span class="required">*</span></label>
+            {{ form.password1 }}
+            {% if form.password1.errors %}<div class="form-error">{{ form.password1.errors.0 }}</div>{% endif %}
+          </div>
+          <div class="form-group">
+            <label class="form-label">Confirm Password <span class="required">*</span></label>
+            {{ form.password2 }}
+            {% if form.password2.errors %}<div class="form-error">{{ form.password2.errors.0 }}</div>{% endif %}
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary w-full" style="margin-top:0.5rem;justify-content:center;">
+          <i data-lucide="user-plus" width="16" height="16"></i>
+          Create Account
+        </button>
+      </form>
+
+      <div style="text-align:center;margin-top:1.5rem;padding-top:1.25rem;border-top:1px solid var(--border);">
+        <p style="font-size:0.875rem;color:var(--text-muted);">
+          Already have an account?
+          <a href="{% url 'login' %}" style="color:var(--primary);font-weight:600;">Sign in here</a>
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
